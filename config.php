@@ -17,6 +17,7 @@ return [
     'LEAD_RECIPIENT'      => 'digicarelynx@gmail.com',
     'LEAD_RECIPIENT_NAME' => 'Links Broadband',
 
+    // Hostinger: FROM_EMAIL must be a mailbox that exists in hPanel > Emails
     // "From" identity (leave FROM_EMAIL empty to use no-reply@<your domain>)
     'FROM_EMAIL' => '',
     'FROM_NAME'  => 'Links Broadband Website',

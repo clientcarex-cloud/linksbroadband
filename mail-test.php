@@ -43,6 +43,13 @@ if ($result['ok']) {
     echo "Check {$config['LEAD_RECIPIENT']} (and the Spam folder) in 1-5 minutes.\n";
 } else {
     echo "RESULT: FAILED - every method was refused by the server.\n";
+    if (str_contains((string) ini_get('sendmail_path'), 'hsendmail')) {
+        $from = lb_sender_address($config);
+        echo "\nHOSTINGER: the sender address must be a real mailbox on this domain.\n";
+        echo "  1. hPanel > Emails > create the mailbox {$from} (or use one you already have).\n";
+        echo "  2. Put that exact address in FROM_EMAIL in config.php.\n";
+        echo "  3. Reload this page.\n";
+    }
 }
 if ($result['errors']) {
     echo "\nErrors from methods that did not work:\n";
