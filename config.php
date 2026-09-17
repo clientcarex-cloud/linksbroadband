@@ -27,6 +27,10 @@ return [
     // Keep a CSV backup of every lead in /storage/leads.csv
     'SAVE_LEADS_CSV' => true,
 
+    // Secret key for the mail test page: /mail-test.php?key=THIS_VALUE
+    // Delete mail-test.php once email is working.
+    'TEST_KEY' => '48132a0a6187',
+
     // Minimum seconds between two submissions from the same visitor
     'RATE_LIMIT_SECONDS' => 30,
 ];

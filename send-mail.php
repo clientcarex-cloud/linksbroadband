@@ -6,11 +6,7 @@
 
 declare(strict_types=1);
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
-require __DIR__ . '/lib/PHPMailer/src/Exception.php';
-require __DIR__ . '/lib/PHPMailer/src/PHPMailer.php';
+require __DIR__ . '/lib/mailer.php';
 
 $config = require __DIR__ . '/config.php';
 
@@ -158,43 +154,18 @@ foreach ($rows as $label => $value) {
     $text .= str_pad($label . ':', 18) . $value . "\n";
 }
 
-// ---- Send (server mail via PHPMailer, no SMTP) -----------------------------
-function senderAddress(array $config): string
-{
-    if (!empty($config['FROM_EMAIL'])) {
-        return $config['FROM_EMAIL'];
-    }
-    $host = strtolower(preg_replace('/:\d+$/', '', $_SERVER['SERVER_NAME'] ?? $_SERVER['HTTP_HOST'] ?? 'localhost'));
-    $host = preg_replace('/^www\./', '', $host);
-    if (!preg_match('/^[a-z0-9.-]+\.[a-z]{2,}$/', $host)) {
-        $host = 'localhost.localdomain';
-    }
-    return 'no-reply@' . $host;
-}
+// ---- Send (server mail via PHPMailer, see lib/mailer.php) ------------------
+$result = lb_send_mail($config, [
+    'to'         => $config['LEAD_RECIPIENT'],
+    'to_name'    => $config['LEAD_RECIPIENT_NAME'],
+    'subject'    => 'New Lead: ' . $name . ' (' . $phoneDisplay . ')' . ($plan ? ' - ' . $plan : ''),
+    'html'       => $html,
+    'text'       => $text,
+    'reply_to'   => $email,
+    'reply_name' => $name,
+]);
 
-function makeMailer(array $config): PHPMailer
-{
-    $mail = new PHPMailer(true);
-    $mail->isMail();                         // use the server's PHP mail() / sendmail
-    $mail->CharSet = 'UTF-8';
-    $from = senderAddress($config);
-    $mail->setFrom($from, $config['FROM_NAME']);  // also sets the envelope sender (-f)
-    return $mail;
-}
-
-try {
-    $mail = makeMailer($config);
-    $mail->addAddress($config['LEAD_RECIPIENT'], $config['LEAD_RECIPIENT_NAME']);
-    if ($email !== '') {
-        $mail->addReplyTo($email, $name);
-    }
-    $mail->isHTML(true);
-    $mail->Subject = 'New Lead: ' . $name . ' (' . $phoneDisplay . ')' . ($plan ? ' — ' . $plan : '');
-    $mail->Body    = $html;
-    $mail->AltBody = $text;
-    $mail->send();
-} catch (Exception $ex) {
-    error_log('[Links Broadband] Lead mail failed: ' . ($mail->ErrorInfo ?? $ex->getMessage()));
+if (!$result['ok']) {
     respond(false, 'We could not send your request right now. Please call or WhatsApp us on 93930 50511.', 500);
 }
 
@@ -202,26 +173,22 @@ $_SESSION['last_lead_at'] = time();
 
 // ---- Optional auto-reply to the customer -----------------------------------
 if (!empty($config['SEND_AUTOREPLY']) && $email !== '') {
-    try {
-        $reply = makeMailer($config);
-        $reply->addAddress($email, $name);
-        $reply->isHTML(true);
-        $reply->Subject = 'Thanks for choosing Links Broadband!';
-        $planLine = $plan ? '<p style="margin:0 0 12px">Plan you are interested in: <strong>' . e($plan) . ($duration ? ' — ' . e($duration) : '') . '</strong></p>' : '';
-        $reply->Body = '<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1a2a33">'
-            . '<div style="background:linear-gradient(120deg,#0a8fd0,#6dbb1f);color:#fff;padding:22px 26px;border-radius:12px 12px 0 0"><div style="font-size:22px;font-weight:700">Links Broadband</div><div style="opacity:.9">Connects Together…</div></div>'
+    $planLine = $plan ? '<p style="margin:0 0 12px">Plan you are interested in: <strong>' . e($plan) . ($duration ? ' - ' . e($duration) : '') . '</strong></p>' : '';
+    lb_send_mail($config, [
+        'to'      => $email,
+        'to_name' => $name,
+        'subject' => 'Thanks for choosing Links Broadband!',
+        'html'    => '<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1a2a33">'
+            . '<div style="background:#0a8fd0;background:linear-gradient(120deg,#0a8fd0,#6dbb1f);color:#fff;padding:22px 26px;border-radius:12px 12px 0 0"><div style="font-size:22px;font-weight:700">Links Broadband</div><div style="opacity:.9">Connects Together...</div></div>'
             . '<div style="border:1px solid #dce8ee;border-top:0;padding:22px 26px;border-radius:0 0 12px 12px">'
             . '<p style="margin:0 0 12px">Hi ' . e($name) . ',</p>'
             . '<p style="margin:0 0 12px">Thank you for your interest in Links Broadband. We have received your request and our team will call you on <strong>' . e($phoneDisplay) . '</strong> shortly.</p>'
             . $planLine
             . '<p style="margin:0 0 12px">Please keep these documents ready for installation: Address Proof, ID Proof and a Passport Size Photo.</p>'
             . '<p style="margin:0">Need us sooner? Call or WhatsApp <a href="tel:+919393050511">93930 50511</a>.</p>'
-            . '</div></div>';
-        $reply->AltBody = "Hi {$name},\n\nThank you for your interest in Links Broadband. Our team will call you on {$phoneDisplay} shortly.\n\nCall / WhatsApp: 93930 50511";
-        $reply->send();
-    } catch (Exception $ex) {
-        error_log('[Links Broadband] Auto-reply failed: ' . $ex->getMessage());
-    }
+            . '</div></div>',
+        'text'    => "Hi {$name},\n\nThank you for your interest in Links Broadband. Our team will call you on {$phoneDisplay} shortly.\n\nCall / WhatsApp: 93930 50511",
+    ]);
 }
 
 respond(true, 'Thank you, ' . $name . '! Our team will call you shortly.');
