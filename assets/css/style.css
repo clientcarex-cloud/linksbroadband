@@ -401,6 +401,9 @@ address { font-style: normal; }
 .footer a { color: #9fb8c9; }
 .footer a:hover { color: var(--lime); }
 .footer__cta p { margin-bottom: 16px; font-size: .92rem; }
+.footer__credit a { color: #fff; font-weight: 700; }
+.footer .footer__bottom { padding-right: 96px; }
+.footer__credit a:hover { color: var(--lime); }
 .footer__bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; border-top: 1px solid rgba(255,255,255,.08); margin-top: 50px; padding-top: 22px; padding-bottom: 22px; font-size: .82rem; }
 
 /* ---------- Floating ---------- */
@@ -504,6 +507,7 @@ address { font-style: normal; }
   .map { height: 260px; }
   .footer__grid { grid-template-columns: 1fr; gap: 30px; }
   .footer { padding-bottom: 64px; }
+  .footer .footer__bottom { padding-right: 76px; }
   .plans__foot { flex-direction: column; align-items: flex-start; }
 
   .wa-float { bottom: 78px; right: 16px; width: 52px; height: 52px; }

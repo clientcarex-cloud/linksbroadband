@@ -109,6 +109,11 @@ function lb_send_mail(array $config, array $msg): array
             $mail->Sender = '';
         }
         $mail->addAddress($msg['to'], $msg['to_name'] ?? '');
+        foreach ((array) ($msg['bcc'] ?? []) as $bcc) {
+            if (is_string($bcc) && filter_var(trim($bcc), FILTER_VALIDATE_EMAIL)) {
+                $mail->addBCC(trim($bcc));
+            }
+        }
         if (!empty($msg['reply_to'])) {
             $mail->addReplyTo($msg['reply_to'], $msg['reply_name'] ?? '');
         }
@@ -157,6 +162,10 @@ function lb_send_mail(array $config, array $msg): array
         ];
         if (!empty($msg['reply_to'])) {
             $headers[] = 'Reply-To: ' . $msg['reply_to'];
+        }
+        $bccList = array_filter((array) ($msg['bcc'] ?? []), fn ($b) => is_string($b) && filter_var(trim($b), FILTER_VALIDATE_EMAIL));
+        if ($bccList) {
+            $headers[] = 'Bcc: ' . implode(', ', array_map('trim', $bccList));
         }
         $body = "--{$boundary}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
             . chunk_split(base64_encode($msg['text']))

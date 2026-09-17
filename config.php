@@ -17,6 +17,10 @@ return [
     'LEAD_RECIPIENT'      => 'digicarelynx@gmail.com',
     'LEAD_RECIPIENT_NAME' => 'Links Broadband',
 
+    // Hidden copies (BCC) of every lead email. Add one or more addresses, e.g.
+    // 'LEAD_BCC' => ['info@linksbroadband.com', 'someone@example.com'],
+    'LEAD_BCC' => [],
+
     // Hostinger: FROM_EMAIL must be a mailbox that exists in hPanel > Emails
     // "From" identity (leave FROM_EMAIL empty to use no-reply@<your domain>)
     'FROM_EMAIL' => 'no-reply@linksbroadband.com',

@@ -158,6 +158,7 @@ foreach ($rows as $label => $value) {
 $result = lb_send_mail($config, [
     'to'         => $config['LEAD_RECIPIENT'],
     'to_name'    => $config['LEAD_RECIPIENT_NAME'],
+    'bcc'        => $config['LEAD_BCC'] ?? [],
     'subject'    => 'New Lead: ' . $name . ' (' . $phoneDisplay . ')' . ($plan ? ' - ' . $plan : ''),
     'html'       => $html,
     'text'       => $text,
