@@ -10,7 +10,7 @@ assets/js/main.js     Plan prices and toggles, plan pop-up, AJAX form sending
 assets/img/           Logo, poster, plan flyer (taken from the original images)
 send-mail.php         Checks the form and sends the email with PHPMailer using the server's mail() (returns JSON)
 config.php            Who receives leads, sender address, options, test key
-lib/mailer.php        Tries 4 server mail methods in turn, logs failures to storage/mail-errors.log
+lib/mailer.php        Sends via the Hostinger mailbox first (if MAILBOX_PASSWORD is set), then 4 server mail methods, logs failures to storage/mail-errors.log
 mail-test.php         Mail test page: /mail-test.php?key=TEST_KEY (delete once email works)
 lib/PHPMailer/        PHPMailer 6.10.0 core (no Composer, no SMTP)
 storage/leads.csv     Backup copy of every lead (created on the first form submit, blocked from the web)
@@ -25,6 +25,7 @@ storage/leads.csv     Backup copy of every lead (created on the first form submi
 > On hosting that is not Apache (e.g. Nginx), block web access to `config.php`, `storage/` and `lib/` yourself. The `.htaccess` files only work on Apache/LiteSpeed.
 
 ## If emails don't arrive
+0. On Hostinger, set `FROM_EMAIL` to an existing mailbox and put that mailbox's password in `MAILBOX_PASSWORD` (config.php). Hostinger's server mail() refuses mail on this account.
 1. Open `https://yourdomain.com/mail-test.php?key=<TEST_KEY from config.php>`. It shows the server's mail settings, sends a test email and lists any errors.
 2. Failures are also written to `storage/mail-errors.log`.
 3. Email can't be sent from a local PC setup (XAMPP/WAMP/MAMP, `php -S`). Test on the live hosting.

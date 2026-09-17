@@ -19,8 +19,15 @@ return [
 
     // Hostinger: FROM_EMAIL must be a mailbox that exists in hPanel > Emails
     // "From" identity (leave FROM_EMAIL empty to use no-reply@<your domain>)
-    'FROM_EMAIL' => '',
+    'FROM_EMAIL' => 'no-reply@linksbroadband.com',
     'FROM_NAME'  => 'Links Broadband Website',
+
+    // Password of the FROM_EMAIL mailbox (hPanel > Emails > mailbox > Change password).
+    // Hostinger's server mail() refuses mail on this account, so the site sends
+    // through this mailbox instead. It is only used on the server and never shown.
+    'MAILBOX_PASSWORD' => '',
+    'MAILBOX_HOST'     => 'smtp.hostinger.com',
+    'MAILBOX_PORT'     => 465,
 
     // Send a thank-you email to the customer when they give an email address
     'SEND_AUTOREPLY' => true,

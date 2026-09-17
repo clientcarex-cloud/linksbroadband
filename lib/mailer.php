@@ -8,6 +8,8 @@
  *   2. PHPMailer mail() without -f  (some hosts reject -f)
  *   3. PHPMailer sendmail binary     (when mail() is disabled or broken)
  *   4. Plain PHP mail() with basic headers
+ *   0. Your own Hostinger mailbox (only when MAILBOX_PASSWORD is set in config.php).
+ *      This is tried first because Hostinger's server mail() often refuses mail.
  * Every failure is written to storage/mail-errors.log.
  */
 
@@ -18,6 +20,7 @@ use PHPMailer\PHPMailer\Exception as MailerException;
 
 require_once __DIR__ . '/PHPMailer/src/Exception.php';
 require_once __DIR__ . '/PHPMailer/src/PHPMailer.php';
+require_once __DIR__ . '/PHPMailer/src/SMTP.php';
 
 // Small fallbacks for hosts without the mbstring extension
 if (!function_exists('mb_substr')) {
@@ -83,9 +86,18 @@ function lb_send_mail(array $config, array $msg): array
     $fromName = $config['FROM_NAME'] ?? 'Website';
     $errors   = [];
 
-    $build = function (string $mode, bool $useEnvelope) use ($from, $fromName, $msg): PHPMailer {
+    $build = function (string $mode, bool $useEnvelope) use ($config, $from, $fromName, $msg): PHPMailer {
         $mail = new PHPMailer(true);
-        if ($mode === 'sendmail') {
+        if ($mode === 'mailbox') {
+            $mail->isSMTP();
+            $mail->Host       = $config['MAILBOX_HOST'] ?? 'smtp.hostinger.com';
+            $mail->Port       = (int) ($config['MAILBOX_PORT'] ?? 465);
+            $mail->SMTPSecure = $mail->Port === 465 ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $from;
+            $mail->Password   = (string) $config['MAILBOX_PASSWORD'];
+            $mail->Timeout    = 15;
+        } elseif ($mode === 'sendmail') {
             $mail->isSendmail();
         } else {
             $mail->isMail();
@@ -109,6 +121,9 @@ function lb_send_mail(array $config, array $msg): array
 
     $mailOff = lb_mail_disabled();
     $attempts = [];
+    if (!empty($config['MAILBOX_PASSWORD'])) {
+        $attempts['hostinger-mailbox'] = fn () => $build('mailbox', true);
+    }
     if (!$mailOff) {
         $attempts['phpmailer-mail-with-f'] = fn () => $build('mail', true);
         $attempts['phpmailer-mail']        = fn () => $build('mail', false);

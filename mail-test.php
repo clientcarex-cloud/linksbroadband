@@ -29,6 +29,7 @@ echo 'mbstring loaded    : ' . $yes(extension_loaded('mbstring')) . "\n";
 echo 'sendmail_path      : ' . (ini_get('sendmail_path') ?: '-') . "\n";
 echo 'sendmail_from      : ' . (ini_get('sendmail_from') ?: '-') . "\n";
 echo 'disable_functions  : ' . (ini_get('disable_functions') ?: '-') . "\n";
+echo 'Mailbox password   : ' . (empty($config['MAILBOX_PASSWORD']) ? 'NOT SET' : 'set') . "\n";
 echo 'storage writable   : ' . $yes(is_writable(__DIR__ . '/storage')) . "\n\n";
 
 $result = lb_send_mail($config, [
@@ -45,10 +46,10 @@ if ($result['ok']) {
     echo "RESULT: FAILED - every method was refused by the server.\n";
     if (str_contains((string) ini_get('sendmail_path'), 'hsendmail')) {
         $from = lb_sender_address($config);
-        echo "\nHOSTINGER: the sender address must be a real mailbox on this domain.\n";
-        echo "  1. hPanel > Emails > create the mailbox {$from} (or use one you already have).\n";
-        echo "  2. Put that exact address in FROM_EMAIL in config.php.\n";
-        echo "  3. Reload this page.\n";
+        echo "\nHOSTINGER: server mail() is refused on this account.\n";
+        echo "  1. FROM_EMAIL in config.php must be an existing mailbox (now: {$from}).\n";
+        echo "  2. Put that mailbox's password in MAILBOX_PASSWORD in config.php.\n";
+        echo "  3. Upload config.php and reload this page.\n";
     }
 }
 if ($result['errors']) {
